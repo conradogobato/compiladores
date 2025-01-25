@@ -1,10 +1,15 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <iostream>
+using namespace std;
 
-extern int yylex();
-void yyerror(const char *s);
+extern "C"
+{
+//  int yyparse(void);
+  int yylex(void);
+  void abrirArq();
+}
+
+void yyerror(char *);
 %}
 
 %token ELSE IF INT RETURN VOID WHILE
@@ -15,7 +20,7 @@ void yyerror(const char *s);
 
 %left SOM SUB
 %left MUL DIV
-%nonassoc LT GT LET GET EQ DIF
+%right LT GT LET GET EQ DIF
 
 %%
 programa:
@@ -58,11 +63,11 @@ param_lista:
 
 param:
     tipo_especificador ID
-    | tipo_especificador ID '[' ']'
+    | tipo_especificador ID ACO FCO
 ;
 
 composto_decl:
-    '{' local_declaracoes statement_lista '}'
+    ACH local_declaracoes statement_lista FCH
 ;
 
 local_declaracoes:
@@ -89,12 +94,12 @@ expressao_decl:
 ;
 
 selecao_decl:
-    IF '(' expressao ')' statement ELSE statement
-    | IF '(' expressao ')' statement
+    IF APR expressao FPR statement ELSE statement
+    | IF APR expressao FPR statement
 ;
 
 iteracao_decl:
-    WHILE '(' expressao ')' statement
+    WHILE APR expressao FPR statement
 ;
 
 retorno_decl:
@@ -109,7 +114,7 @@ expressao:
 
 var:
     ID
-    | ID '[' expressao ']'
+    | ID ACO expressao FCO
 ;
 
 simples_expressao:
@@ -139,14 +144,14 @@ termo:
 ;
 
 fator:
-    '(' expressao ')'
+    APR expressao FPR
     | var
     | ativacao
     | NUM
 ;
 
 ativacao:
-    ID '(' args ')'
+    ID APR args FPR
 ;
 
 args:
@@ -160,25 +165,17 @@ arg_lista:
 ;
 
 %%
-void yyerror(const char *s) {
-    fprintf(stderr, "Erro: %s\n", s);
+
+int main()
+{
+  cout << "\nParser em execução...\n";
+  abrirArq();
+  return yyparse();
 }
 
-int main(int argc, char **argv) {
-    if (argc < 2) {
-        fprintf(stderr, "Uso: %s <arquivo>\n", argv[0]);
-        return 1;
-    }
-
-    FILE *inputFile = fopen(argv[1], "r");
-    if (!inputFile) {
-        perror("Erro ao abrir o arquivo");
-        return 1;
-    }
-
-    yyin = inputFile;
-    yyparse();
-
-    fclose(inputFile);
-    return 0;
+void yyerror(char * msg)
+{
+  extern char* yytext;
+  cout << msg << ": " << yytext << endl;
 }
+
