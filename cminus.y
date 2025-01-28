@@ -1,15 +1,16 @@
 %{
+#include <fstream>
 #include <iostream>
 using namespace std;
 
 extern "C"
 {
-//  int yyparse(void);
+//    yyparse(void);
   int yylex(void);
   void abrirArq();
 }
 
-void yyerror(char *);
+void yyerror(const char *);
 %}
 
 %token ELSE IF INT RETURN VOID WHILE
@@ -173,9 +174,10 @@ int main()
   return yyparse();
 }
 
-void yyerror(char * msg)
+void yyerror(const char * msg)
 {
   extern char* yytext;
   cout << msg << ": " << yytext << endl;
 }
+
 
