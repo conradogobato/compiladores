@@ -1,7 +1,10 @@
 %{
 #include <fstream>
+#include <stdio.h>
 #include <iostream>
+#define YYDEBUG 1
 using namespace std;
+
 
 extern "C"
 {
@@ -10,9 +13,10 @@ extern "C"
   void abrirArq();
 }
 
-void yyerror(const char *);
+void yyerror(char *);
 %}
 
+%start programa
 %token ELSE IF INT RETURN VOID WHILE
 %token ID NUM
 %token SOM SUB MUL DIV LT GT LET GET EQ DIF
@@ -26,6 +30,7 @@ void yyerror(const char *);
 %%
 programa:
     declaracao_lista
+    | expressao EOL
 ;
 
 declaracao_lista:
@@ -169,15 +174,19 @@ arg_lista:
 
 int main()
 {
-  cout << "\nParser em execução...\n";
-  abrirArq();
-  return yyparse();
+    printf("\nParser em execução...\n");
+    abrirArq();
+    int parseResult = yyparse(); 
+    if (parseResult == 0) {
+        printf("\nCompilado com sucesso!\n"); 
+    } else {
+        printf("\nErro: falha no processo de parsing.\n"); 
+    }
+    return parseResult;
 }
 
-void yyerror(const char * msg)
-{
-  extern char* yytext;
-  cout << msg << ": " << yytext << endl;
+void yyerror(char *msg) {
+    extern char *yytext;  
+    extern int lineno;   
+    printf("\nErro: %s in row %d: Unexpected '%s'\n", msg, lineno, yytext);
 }
-
-

@@ -1,40 +1,10 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
+#include "cminus.tab.h"
+extern YYSTYPE yylval;
 void abrirArq();
 
-#define ELSE 300
-#define IF 301
-#define INT 302
-#define RETURN 303
-#define VOID 304
-#define WHILE 305
-#define SOM 306
-#define SUB 307
-#define MUL 308
-#define DIV 309
-#define LT 310
-#define GT 311
-#define LET 312
-#define GET 313
-#define EQ 314
-#define DIF 315
-#define ATR 316
-#define EOL 317
-#define VIR 318
-#define APR 319
-#define FPR 320
-#define ACO 321
-#define FCO 322
-#define ACH 323
-#define FCH 324
-#define NUM 328
-#define ID 327
-#define FIM 329
-#define QDL 332
-#define ERROR 333
-
-FILE *outputFile;
 int lineno = 1; 
 %}
 
@@ -70,8 +40,9 @@ while               return WHILE;
 "}"                 return FCH;
 
 {LETRA}({LETRA}|{DIGITO})*{DIGITO}({LETRA}|{DIGITO})*   return ERROR;
-{DIGITO}+           return NUM;
-{LETRA}({LETRA}|{DIGITO})*   return ID;
+{DIGITO}+          { yylval = atoi(yytext); return NUM; }
+
+{LETRA}({LETRA}|{DIGITO})*   { yylval = strdup(yytext); return ID; }
 
 "/*"([^*]|(\*+[^*/]))*"*/" {
     for (char *c = yytext; *c != '\0'; ++c) {
@@ -81,10 +52,17 @@ while               return WHILE;
 
 [ ]                 ; /* Ignore espaços */
 [\t]                ; /* Ignore tabs */
-[\n]                { lineno++; }
-<<EOF>>             return FIM;
+\n              { lineno++; }
+\r\n            { lineno++; }
+<<EOF>>             return YYEOF;
 
-.                   { printf("Erro: caractere inválido '%s'\n", yytext); }
+.   { 
+    if (yytext[0] < 32 || yytext[0] == 127) {
+        printf("Erro: caractere inválido (não imprimível, código ASCII: %d)\n", yytext[0]);
+    } else {
+        printf("Erro: caractere inválido '%s'\n", yytext);
+    }
+}
 
 %%
 
