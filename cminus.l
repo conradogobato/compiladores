@@ -58,9 +58,11 @@ while               return WHILE;
 
 .   { 
     if (yytext[0] < 32 || yytext[0] == 127) {
-        printf("Erro: caractere inválido (não imprimível, código ASCII: %d)\n", yytext[0]);
+        printf("Lexical Error: invalid character (non printable, ASCII code: %d) on row %d\n", yytext[0], lineno);
+        exit(1);
     } else {
-        printf("Erro: caractere inválido '%s'\n", yytext);
+        printf("Lexical Error: invalid character '%s' on row: %d\n", yytext, lineno);
+        exit(1);
     }
 }
 

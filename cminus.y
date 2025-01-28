@@ -174,13 +174,13 @@ arg_lista:
 
 int main()
 {
-    printf("\nParser em execução...\n");
+    printf("\Executing parser...\n");
     abrirArq();
     int parseResult = yyparse(); 
     if (parseResult == 0) {
-        printf("\nCompilado com sucesso!\n"); 
+        printf("\Success!\n"); 
     } else {
-        printf("\nErro: falha no processo de parsing.\n"); 
+        printf("\nError: parsing failed.\n"); 
     }
     return parseResult;
 }
@@ -188,5 +188,5 @@ int main()
 void yyerror(char *msg) {
     extern char *yytext;  
     extern int lineno;   
-    printf("\nErro: %s in row %d: Unexpected '%s'\n", msg, lineno, yytext);
+    printf("\nError: %s in row %d: Unexpected '%s'\n", msg, lineno, yytext);
 }

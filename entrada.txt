@@ -8,7 +8,7 @@ int minloc ( int a[], int low, int high )
 		if (a[i] < x){
 			x = a[i];
 			k = i;
-            aa = 1;
+            aa = 1;-
 		}
 		i = i + 1;
 	}
