@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "cminus.tab.h"
-extern YYSTYPE yylval;
+#include "globals.h"
 void abrirArq();
 
+int TraceScan = TRUE;
 int lineno = 1; 
 %}
 
@@ -40,9 +41,9 @@ while               return WHILE;
 "}"                 return FCH;
 
 {LETRA}({LETRA}|{DIGITO})*{DIGITO}({LETRA}|{DIGITO})*   return ERROR;
-{DIGITO}+          { yylval = atoi(yytext); return NUM; }
+{DIGITO}+          { return NUM; }
 
-{LETRA}({LETRA}|{DIGITO})*   { yylval = strdup(yytext); return ID; }
+{LETRA}({LETRA}|{DIGITO})*   { return ID; }
 
 "/*"([^*]|(\*+[^*/]))*"*/" {
     for (char *c = yytext; *c != '\0'; ++c) {
@@ -78,4 +79,22 @@ void abrirArq() {
         fprintf(stderr, "Erro ao abrir o arquivo entrada.txt\n");
         exit(EXIT_FAILURE);
     }
+}
+
+TokenType getToken(void)
+{ static int firstTime = TRUE;
+  TokenType currentToken;
+  if (firstTime)
+  { firstTime = FALSE;
+    lineno++;
+    yyin = source;
+    yyout = listing;
+  }
+  currentToken = yylex();
+  strncpy(tokenString,yytext,MAXTOKENLEN);
+  if (TraceScan) {
+    fprintf(listing,"\t%d: ",lineno);
+    printToken(currentToken,tokenString);
+  }
+  return currentToken;
 }
