@@ -1,12 +1,8 @@
 %{
-#include <stdlib.h>
-#include <stdio.h>
-#include "cminus.tab.h"
 #include "globals.h"
-void abrirArq();
 
-int TraceScan = TRUE;
-int lineno = 1; 
+char tokenString[MAXTOKENLEN+1];
+extern int yylex(void);
 %}
 
 DIGITO [0-9]
@@ -69,18 +65,6 @@ while               return WHILE;
 
 %%
 
-int yywrap() {
-    return 1;
-}
-
-void abrirArq() {
-    yyin = fopen("entrada.txt", "r");
-    if (!yyin) {
-        fprintf(stderr, "Erro ao abrir o arquivo entrada.txt\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
 TokenType getToken(void)
 { static int firstTime = TRUE;
   TokenType currentToken;
@@ -92,9 +76,6 @@ TokenType getToken(void)
   }
   currentToken = yylex();
   strncpy(tokenString,yytext,MAXTOKENLEN);
-  if (TraceScan) {
-    fprintf(listing,"\t%d: ",lineno);
-    printToken(currentToken,tokenString);
-  }
+
   return currentToken;
 }

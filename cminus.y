@@ -1,29 +1,13 @@
 %{
-#include <fstream>
-#include <stdio.h>
-#include <iostream>
+#define YYPARSER
 #include "globals.h"
 
-#define YYPARSER
-#define YYSTYPE TreeNode *
+#define YYSTYPE TreeNode*
 #define YYDEBUG 1
-
-static char * savedName; /* for use in assignments */
-static int savedLineNo;  /* ditto */
 static TreeNode * savedTree; /* stores syntax tree for later return */
-
-using namespace std;
-
-extern int yydebug;
-
-extern "C"
-{
-//    yyparse(void);
-  int yylex(void);
-  void abrirArq();
-}
-TreeNode * parse();
 void yyerror(char *);
+static int yylex(void);
+
 %}
 
 %start programa
@@ -69,12 +53,27 @@ declaracao:
     }
 ;
 
-var_declaracao:
-    tipo_especificador ID EOL   {
-        $$ = $1;
+id: 
+    ID {
+        $$ = newExpNode(IdK);
+        $$->attr.name = copyString(tokenString);
     }
-    | tipo_especificador ID ACO NUM FCO EOL {
+
+num:
+    NUM {
+        $$ = newExpNode(ConstK);
+        $$->attr.val = atoi(tokenString);
+    }
+
+var_declaracao:
+    tipo_especificador id EOL   {
+        $$ = $1; 
+        $$->child[0] = $2;       
+    }
+    | tipo_especificador id ACO num FCO EOL {
         $$ = $1;
+        $$->child[0] = $2;
+        $2->child[0] = $4;
     }
 ;
 
@@ -91,11 +90,12 @@ tipo_especificador:
 ;
 
 fun_declaracao:
-    tipo_especificador ID APR params FPR composto_decl  {
-        $$ = newStmtNode(FunctionK);
-        $$->child[0] = $1;
-        $$->child[1] = $4;
-        $$->child[2] = $6;
+    tipo_especificador id APR params FPR composto_decl  {
+        $$ = $1;
+        $$->child[0] = $2;
+
+        $2->child[0] = $4;
+        $2->child[1] = $6;
     }
 ;
 
@@ -104,7 +104,8 @@ params:
         $$ = $1;
     }
     | VOID  {
-
+        $$ = newExpNode(TypeK);
+        $$->type = Void;
     }
 ;
 
@@ -125,16 +126,19 @@ param_lista:
 ;
 
 param:
-    tipo_especificador ID   {
+    tipo_especificador id   {
         $$ = $1;
+        $$->child[0] = $2;
     }
-    | tipo_especificador ID ACO FCO {
+    | tipo_especificador id ACO FCO {
         $$ = $1;
+        $$->child[0] = $2;
     }
 ;
 
 composto_decl:
     ACH local_declaracoes statement_lista FCH   {
+        $$ = newStmtNode(FunctionK);
         $$->child[0] = $2;
         $$->child[1] = $3;
     }
@@ -151,7 +155,9 @@ local_declaracoes:
             }
             else $$ = $2;
     }
-    | /* vazio */   {}
+    | /* vazio */   {
+        $$ = NULL;
+    }
 ;
 
 statement_lista:
@@ -165,7 +171,9 @@ statement_lista:
             }
             else $$ = $1;
     }
-    | /* vazio */   {}
+    | /* vazio */   {
+        $$ = NULL;
+    }
 ;
 
 statement:
@@ -238,13 +246,11 @@ expressao:
 ;
 
 var:
-    ID  {
-        $$ = newExpNode(IdK);
-        $$->attr.name = copyString(tokenString);
+    id  {
+        $$ = $1;
     }
-    | ID ACO expressao FCO  {
-        $$ = newExpNode(IdK);
-        $$->attr.name = copyString(tokenString);
+    | id ACO expressao FCO  {
+        $$ = $1;
         $$->child[0] = $3;
     }
 ;
@@ -333,17 +339,15 @@ fator:
     | ativacao {
         $$ = $1;
     }
-    | NUM   {
-        $$ = newExpNode(ConstK);
-        $$->attr.val = atoi(tokenString);
+    | num   {
+        $$ = $1;
     }
 ;
 
 ativacao:
-    ID APR args FPR {
-        $$ = newStmtNode(FunctionK);
-        $$->attr.name = copyString(tokenString);
-        $$ = $3;
+    id APR args FPR {
+        $$ = $1;
+        $$->child[0] = $3;
     }
 ;
 
@@ -372,19 +376,6 @@ arg_lista:
 
 %%
 
-int main()
-{
-    printf("\nExecuting parser...\n");
-    abrirArq();
-    yydebug = 1;
-    int parseResult = yyparse(); 
-    if (parseResult == 0) {
-        printf("\nSuccess!\n"); 
-    } else {
-        printf("\nError: parsing failed.\n"); 
-    }
-    return parseResult;
-}
 
 void yyerror(char *msg) {
     extern char *yytext;  
@@ -392,11 +383,11 @@ void yyerror(char *msg) {
     printf("\nError: %s in row %d: Unexpected '%s'\n", msg, lineno, yytext);
 }
 
-TreeNode * parse(){
+TreeNode * parse(void){
     yyparse();
     return savedTree;
 }
 
-static int yylex(){
+static int yylex(void){
     return getToken();
 }

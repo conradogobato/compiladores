@@ -1,11 +1,3 @@
-/****************************************************/
-/* File: globals.h                                  */
-/* Global types and vars for TINY compiler          */
-/* must come before other include files             */
-/* Compiler Construction: Principles and Practice   */
-/* Kenneth C. Louden                                */
-/****************************************************/
-
 #ifndef _GLOBALS_H_
 #define _GLOBALS_H_
 
@@ -13,7 +5,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+
+#ifndef YYPARSER
+
 #include "cminus.tab.h"
+#define ENDFILE 0
+
+#endif
 
 #ifndef FALSE
 #define FALSE 0
@@ -26,11 +24,13 @@
 /* MAXRESERVED = the number of reserved words */
 #define MAXRESERVED 8
 #define MAXTOKENLEN 40
+#define INDENT indentno+=2
+#define UNINDENT indentno-=2
 
+extern int indentno;
 extern char tokenString[MAXTOKENLEN+1];
 
 typedef int TokenType;
-TokenType getToken();
 
 extern FILE* source; /* source code text file */
 extern FILE* listing; /* listing output text file */
@@ -71,39 +71,26 @@ TreeNode * newExpNode(ExpKind kind);
 
 char * copyString(char * s);
 
+void printTree( TreeNode * tree );
 
-/**************************************************/
-/***********   Flags for tracing       ************/
-/**************************************************/
+TokenType getToken(void);
 
-/* EchoSource = TRUE causes the source program to
- * be echoed to the listing file with line numbers
- * during parsing
- */
+TreeNode * parse(void);
+
+void printSpaces(void);
+
+//void abrirArq(void);
+
 extern int EchoSource;
 
-/* TraceScan = TRUE causes token information to be
- * printed to the listing file as each token is
- * recognized by the scanner
- */
 extern int TraceScan;
 
-/* TraceParse = TRUE causes the syntax tree to be
- * printed to the listing file in linearized form
- * (using indents for children)
- */
 extern int TraceParse;
 
-/* TraceAnalyze = TRUE causes symbol table inserts
- * and lookups to be reported to the listing file
- */
 extern int TraceAnalyze;
 
-/* TraceCode = TRUE causes comments to be written
- * to the TM code file as code is generated
- */
 extern int TraceCode;
 
-/* Error = TRUE prevents further passes if an error occurs */
 extern int Error; 
+
 #endif
