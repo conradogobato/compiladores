@@ -21,6 +21,7 @@ int Error = FALSE;
 
 int main()
 {
+    int yydebug = 1;
     printf("\nExecuting parser...\n");
     TreeNode * syntaxTree;
     printf("\nOpening file...\n");

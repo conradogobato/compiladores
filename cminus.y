@@ -7,6 +7,7 @@
 static TreeNode * savedTree; /* stores syntax tree for later return */
 void yyerror(char *);
 static int yylex(void);
+extern int yydebug;
 
 %}
 
@@ -79,13 +80,15 @@ var_declaracao:
 
 tipo_especificador:
     INT {
-        $$ = newExpNode(ConstK);
+        $$ = newExpNode(TypeK);
         $$->attr.val = atoi(tokenString);
         $$->type = Integer;
+        $$->attr.name = "int";
     }
     | VOID  {
         $$ = newExpNode(TypeK);
         $$->type = Void;
+        $$->attr.name = "void";
     }
 ;
 
@@ -106,6 +109,7 @@ params:
     | VOID  {
         $$ = newExpNode(TypeK);
         $$->type = Void;
+        $$->attr.name = "void";
     }
 ;
 
@@ -138,7 +142,7 @@ param:
 
 composto_decl:
     ACH local_declaracoes statement_lista FCH   {
-        $$ = newStmtNode(FunctionK);
+        $$ = newStmtNode(WriteK);
         $$->child[0] = $2;
         $$->child[1] = $3;
     }
@@ -166,10 +170,10 @@ statement_lista:
             if (t != NULL){
             while (t->sibling != NULL)
                 t = t->sibling;
-            t->sibling = $1;
+            t->sibling = $2;
             $$ = $1;
             }
-            else $$ = $1;
+            else $$ = $2;
     }
     | /* vazio */   {
         $$ = NULL;
@@ -226,17 +230,19 @@ iteracao_decl:
 retorno_decl:
     RETURN EOL  {
         $$ = newStmtNode(ReturnK);
+        $$->attr.name = "return";
     }
     | RETURN expressao EOL  {
         $$ = newStmtNode(ReturnK);
+        $$->attr.name = "return";
         $$->child[0] = $2;
     }
 ;
 
 expressao:
     var ATR expressao   {
-        $$ = newExpNode(OpK);
-        $$->attr.op = ATR;
+        $$ = newStmtNode(AssignK);
+        $$->attr.name = "Atribuicao";
         $$->child[0] = $1;
         $$->child[1] = $3;
     }
@@ -346,7 +352,8 @@ fator:
 
 ativacao:
     id APR args FPR {
-        $$ = $1;
+        $$ = newStmtNode(FunctionK);
+        $$->attr.name = $1->attr.name;
         $$->child[0] = $3;
     }
 ;
@@ -355,7 +362,9 @@ args:
     arg_lista   {
         $$ = $1;
     }
-    | /* vazio */  {}
+    | /* vazio */  {
+        $$ = NULL;
+    }
 ;
 
 arg_lista:

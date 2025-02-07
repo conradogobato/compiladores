@@ -97,43 +97,49 @@ void printTree( TreeNode * tree )
     if (tree->nodekind==StmtK)
     { switch (tree->kind.stmt) {
         case IfK:
-          fprintf(listing,"If\n");
+          fprintf(listing,"if:\n");
           break;
         case WhileK:
-          fprintf(listing,"Repeat\n");
+          fprintf(listing,"while:\n");
           break;
         case AssignK:
-          fprintf(listing,"Assign to: %s\n",tree->attr.name);
+          fprintf(listing,"assign to: \n");
           break;
         case ReturnK:
-          fprintf(listing,"Read: %s\n",tree->attr.name);
+          fprintf(listing,"return:\n");
           break;
         case FunctionK:
-          fprintf(listing,"Write\n");
+          fprintf(listing,"function: %s\n", tree->attr.name);
+          break;
+        case WriteK:
+          fprintf(listing,"start function:\n");
           break;
         default:
-          fprintf(listing,"Unknown ExpNode kind\n");
+          fprintf(listing,"unknown ExpNode kind\n");
           break;
       }
     }
     else if (tree->nodekind==ExpK)
     { switch (tree->kind.exp) {
         case OpK:
-          fprintf(listing,"Op: ");
+          fprintf(listing,"op: ");
           printToken(tree->attr.op,"\0");
           break;
         case ConstK:
-          fprintf(listing,"Const: %d\n",tree->attr.val);
+          fprintf(listing,"const: %d\n",tree->attr.val);
           break;
         case IdK:
-          fprintf(listing,"Id: %s\n",tree->attr.name);
+          fprintf(listing,"id: %s\n",tree->attr.name);
+          break;
+        case TypeK:
+          fprintf(listing,"type: %s\n",tree->attr.name);
           break;
         default:
-          fprintf(listing,"Unknown ExpNode kind\n");
+          fprintf(listing,"unknown ExpNode kind\n");
           break;
       }
     }
-    else fprintf(listing,"Unknown node kind\n");
+    else fprintf(listing,"unknown node kind\n");
     for (i=0;i<MAXCHILDREN;i++)
          printTree(tree->child[i]);
     tree = tree->sibling;
