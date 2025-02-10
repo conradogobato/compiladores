@@ -69,11 +69,13 @@ num:
 var_declaracao:
     tipo_especificador id EOL   {
         $$ = $1; 
-        $$->child[0] = $2;       
+        $$->child[0] = $2;
+        $2->type = $1->type;       
     }
     | tipo_especificador id ACO num FCO EOL {
         $$ = $1;
         $$->child[0] = $2;
+        $2->type = $1->type;       
         $2->child[0] = $4;
     }
 ;
@@ -96,7 +98,8 @@ fun_declaracao:
     tipo_especificador id APR params FPR composto_decl  {
         $$ = $1;
         $$->child[0] = $2;
-
+        $2->type = $1->type;       
+        $2->kind.exp = FunctionK;
         $2->child[0] = $4;
         $2->child[1] = $6;
     }
@@ -133,10 +136,12 @@ param:
     tipo_especificador id   {
         $$ = $1;
         $$->child[0] = $2;
+        $2->type = $1->type;       
     }
     | tipo_especificador id ACO FCO {
         $$ = $1;
         $$->child[0] = $2;
+        $2->type = $1->type;       
     }
 ;
 
@@ -352,7 +357,7 @@ fator:
 
 ativacao:
     id APR args FPR {
-        $$ = newStmtNode(FunctionK);
+        $$ = newExpNode(CALLfunctionK);
         $$->attr.name = $1->attr.name;
         $$->child[0] = $3;
     }

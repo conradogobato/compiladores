@@ -1,6 +1,8 @@
 #include "globals.h"
+#include "analyze.h"
+#include "symtab.h"
 
-int lineno = 1;    // ou outro valor inicial, conforme necessário
+int lineno = 0;    // ou outro valor inicial, conforme necessário
 int indentno = 0;  // Iniciar a indentação
 
 FILE * source;
@@ -22,14 +24,23 @@ int Error = FALSE;
 int main()
 {
     int yydebug = 1;
-    printf("\nExecuting parser...\n");
     TreeNode * syntaxTree;
+
     printf("\nOpening file...\n");
     source = fopen("entrada.txt", "r");
     listing = stdout;
+
+    printf("\nExecuting parser...\n");
     printf("\nCreating Tree...\n");
-    syntaxTree = parse(); 
+    syntaxTree = parse();
+
     printf("\nPrinting Tree...\n");
     printTree(syntaxTree);
+    printf("\nSyntax Tree printed successfully\n");
+    
+    printf("\nBuilding symbol table...\n");
+    printf("\nPrinting symbol table...\n");
+    buildSymtab(syntaxTree);
     printf("\nSuccess\n");
+
 }
