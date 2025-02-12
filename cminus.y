@@ -6,6 +6,8 @@
 #define YYDEBUG 1
 static TreeNode * savedTree; /* stores syntax tree for later return */
 void yyerror(char *);
+static int flag = 0;
+char * savedName = "global";
 static int yylex(void);
 extern int yydebug;
 
@@ -58,6 +60,12 @@ id:
     ID {
         $$ = newExpNode(IdK);
         $$->attr.name = copyString(tokenString);
+        savedName = copyString(tokenString);
+        $$->scope = scope;
+        if(flag == 1){
+            $$->scope = savedName;
+            flag = 0;
+        }
     }
 
 num:
@@ -102,6 +110,8 @@ fun_declaracao:
         $2->kind.exp = FunctionK;
         $2->child[0] = $4;
         $2->child[1] = $6;
+        flag = 1;
+        
     }
 ;
 
@@ -150,6 +160,7 @@ composto_decl:
         $$ = newStmtNode(WriteK);
         $$->child[0] = $2;
         $$->child[1] = $3;
+        $$->sibling = newStmtNode(EndFunctionK);
     }
 ;
 

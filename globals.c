@@ -111,6 +111,9 @@ void printTree( TreeNode * tree )
         case WriteK:
           fprintf(listing,"start function:\n");
           break;
+        case EndFunctionK:
+          fprintf(listing,"end function: %s\n", tree->attr.name);
+          break;
         default:
           fprintf(listing,"unknown ExpNode kind\n");
           break;
@@ -137,6 +140,7 @@ void printTree( TreeNode * tree )
         case CALLfunctionK:
           fprintf(listing,"call to function: %s\n", tree->attr.name);
           break;
+        
         default:
           fprintf(listing,"unknown ExpNode kind\n");
           break;

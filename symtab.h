@@ -5,7 +5,7 @@
 
 static int hash ( char * key );
 
-void st_insert( char * name, int lineno, int loc, ExpType datatype, ExpKind idtype );
+void st_insert( char * name, int lineno, int loc, ExpType datatype, ExpKind idtype, char* scope );
 
 int st_lookup ( char * name );
 

@@ -13,7 +13,7 @@
 
 /* counter for variable memory locations */
 static int location = 0;
-
+char * scope = "global";
 /* Procedure traverse is a generic recursive 
  * syntax tree traversal routine:
  * it applies preProc in preorder and postProc 
@@ -46,7 +46,7 @@ static void nullProc(TreeNode * t)
  * identifiers stored in t into 
  * the symbol table 
  */
-static void insertNode( TreeNode * t)
+static void insertNode(TreeNode * t)
 { switch (t->nodekind)
   { case StmtK:
       switch (t->kind.stmt)
@@ -54,8 +54,10 @@ static void insertNode( TreeNode * t)
             if(st_lookup(t->attr.name) == -1){
                 fprintf("variável %s nao declarada", t->attr.name);
             }else{
-                st_insert(t->attr.name,t->lineno,0,t->type, IdK);
+                st_insert(t->attr.name,t->lineno,0,t->type, IdK, scope);
             }
+        case EndFunctionK: scope = "global";
+
         
         default:
             break;
@@ -65,24 +67,27 @@ static void insertNode( TreeNode * t)
       switch (t->kind.exp)
       { case IdK:
           if (st_lookup(t->attr.name) == -1)
-            st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp);
+            st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, scope);
           else 
-            st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp);
+            st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, scope);
           break;
 
         case CALLfunctionK:
             if (st_lookup(t->attr.name) == -1)
-                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp);
+                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, scope);
             else
-                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp);
+                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, scope);
             break;
 
         case FunctionK:
-            if (st_lookup(t->attr.name) == -1)
-                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp);
+            if (st_lookup(t->attr.name) == -1){
+                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, scope);
+                scope = t->attr.name;
+            }
             else
-                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp);
+                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, scope);
             break;
+
         
         default:
           break;
