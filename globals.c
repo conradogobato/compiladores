@@ -109,7 +109,7 @@ void printTree( TreeNode * tree )
           fprintf(listing,"return:\n");
           break;
         case WriteK:
-          fprintf(listing,"start function:\n");
+          fprintf(listing,"start function: \n");
           break;
         case EndFunctionK:
           fprintf(listing,"end function: %s\n", tree->attr.name);
@@ -124,9 +124,10 @@ void printTree( TreeNode * tree )
         case OpK:
           fprintf(listing,"op: ");
           printToken(tree->attr.op,"\0");
+          fprintf(listing,"\n");
           break;
         case ConstK:
-          fprintf(listing,"const: %d\n",tree->attr.val);
+          fprintf(listing,"const: %d\n", tree->attr.val);
           break;
         case IdK:
           fprintf(listing,"id: %s\n",tree->attr.name);
@@ -135,10 +136,10 @@ void printTree( TreeNode * tree )
           fprintf(listing,"type: %s\n",tree->attr.name);
           break;
         case FunctionK:
-          fprintf(listing,"function: %s\n", tree->attr.name);
+          fprintf(listing,"function: %s\n",tree->attr.name);
           break;
         case CALLfunctionK:
-          fprintf(listing,"call to function: %s\n", tree->attr.name);
+          fprintf(listing,"call to function: %s\n",tree->attr.name);
           break;
         
         default:

@@ -17,4 +17,8 @@ void buildSymtab(TreeNode *);
  */
 void typeCheck(TreeNode *);
 
+void percorreArvore(TreeNode * t,char*);
+
+//void UpdateScope(TreeNode * t, char * scope);
+
 #endif

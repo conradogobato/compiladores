@@ -13,7 +13,8 @@
 
 /* counter for variable memory locations */
 static int location = 0;
-char * scope = "global";
+static int first = 0;
+//char * scope = "global";
 /* Procedure traverse is a generic recursive 
  * syntax tree traversal routine:
  * it applies preProc in preorder and postProc 
@@ -32,6 +33,27 @@ static void traverse( TreeNode * t,
     traverse(t->sibling,preProc,postProc);
   }
 }
+
+void percorreArovre(TreeNode *t, char *scope){
+  if(t == NULL) return;
+
+  t->scope = scope;
+
+  if(t->kind.exp == FunctionK) {
+      
+      percorreArovre(t->child[0], t->attr.name);
+      percorreArovre(t->child[1], t->attr.name);
+      percorreArovre(t->child[2], t->attr.name);
+      percorreArovre(t->sibling, t->attr.name);
+      return;
+  }
+  
+  percorreArovre(t->child[0], scope);
+  percorreArovre(t->child[1], scope);
+  percorreArovre(t->child[2], scope);
+  percorreArovre(t->sibling, scope);
+}
+
 
 /* nullProc is a do-nothing procedure to 
  * generate preorder-only or postorder-only
@@ -54,9 +76,9 @@ static void insertNode(TreeNode * t)
             if(st_lookup(t->attr.name) == -1){
                 fprintf("variável %s nao declarada", t->attr.name);
             }else{
-                st_insert(t->attr.name,t->lineno,0,t->type, IdK, scope);
+                st_insert(t->attr.name,t->lineno,0,t->type, IdK, t->scope);
             }
-        case EndFunctionK: scope = "global";
+       // case EndFunctionK: scope = "global";
 
         
         default:
@@ -67,25 +89,25 @@ static void insertNode(TreeNode * t)
       switch (t->kind.exp)
       { case IdK:
           if (st_lookup(t->attr.name) == -1)
-            st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, scope);
+            st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, t->scope);
           else 
-            st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, scope);
+            st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope);
           break;
 
         case CALLfunctionK:
             if (st_lookup(t->attr.name) == -1)
-                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, scope);
+                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, t->scope);
             else
-                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, scope);
+                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope);
             break;
 
         case FunctionK:
             if (st_lookup(t->attr.name) == -1){
-                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, scope);
-                scope = t->attr.name;
+                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, t->scope);
+                //scope = t->attr.name;
             }
             else
-                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, scope);
+                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope);
             break;
 
         

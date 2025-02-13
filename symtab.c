@@ -12,7 +12,12 @@
 
 /* the hash function */
 static int hash ( char * key )
-{ int temp = 0;
+{ if (key == NULL) {
+        fprintf(stderr, "Erro: chave NULL passada para hash()\n");
+        return -1;  // Retorna um valor especial para indicar erro
+  }
+  
+  int temp = 0;
   int i = 0;
   while (key[i] != '\0')
   { temp = ((temp << SHIFT) + key[i]) % SIZE;

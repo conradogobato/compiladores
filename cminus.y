@@ -6,8 +6,9 @@
 #define YYDEBUG 1
 static TreeNode * savedTree; /* stores syntax tree for later return */
 void yyerror(char *);
-static int flag = 0;
-char * savedName = "global";
+int flag=0;
+int decider = 0;
+static char * savedName;
 static int yylex(void);
 extern int yydebug;
 
@@ -61,11 +62,6 @@ id:
         $$ = newExpNode(IdK);
         $$->attr.name = copyString(tokenString);
         savedName = copyString(tokenString);
-        $$->scope = scope;
-        if(flag == 1){
-            $$->scope = savedName;
-            flag = 0;
-        }
     }
 
 num:
@@ -93,8 +89,7 @@ tipo_especificador:
         $$ = newExpNode(TypeK);
         $$->attr.val = atoi(tokenString);
         $$->type = Integer;
-        $$->attr.name = "int";
-    }
+        $$->attr.name = "int";    }
     | VOID  {
         $$ = newExpNode(TypeK);
         $$->type = Void;
@@ -110,8 +105,6 @@ fun_declaracao:
         $2->kind.exp = FunctionK;
         $2->child[0] = $4;
         $2->child[1] = $6;
-        flag = 1;
-        
     }
 ;
 
@@ -146,12 +139,12 @@ param:
     tipo_especificador id   {
         $$ = $1;
         $$->child[0] = $2;
-        $2->type = $1->type;       
+        $2->type = $1->type;
     }
     | tipo_especificador id ACO FCO {
         $$ = $1;
         $$->child[0] = $2;
-        $2->type = $1->type;       
+        $2->type = $1->type;  
     }
 ;
 
@@ -160,7 +153,6 @@ composto_decl:
         $$ = newStmtNode(WriteK);
         $$->child[0] = $2;
         $$->child[1] = $3;
-        $$->sibling = newStmtNode(EndFunctionK);
     }
 ;
 

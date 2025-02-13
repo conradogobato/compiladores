@@ -36,6 +36,7 @@ extern FILE* source; /* source code text file */
 extern FILE* listing; /* listing output text file */
 extern FILE* code; /* code text file for TM simulator */
 
+extern int flag;
 extern int lineno; /* source line number for listing */
 
 /**************************************************/
@@ -43,7 +44,7 @@ extern int lineno; /* source line number for listing */
 /**************************************************/
 
 typedef enum {StmtK,ExpK} NodeKind;
-typedef enum {IfK,WhileK,AssignK,ReturnK,WriteK, EndFunctionK} StmtKind;
+typedef enum {IfK,WhileK,AssignK,ReturnK, EndFunctionK, WriteK} StmtKind;
 typedef enum {OpK,ConstK,IdK,TypeK,FunctionK,CALLfunctionK} ExpKind;
 
 /* ExpType is used for type checking */

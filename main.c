@@ -34,10 +34,14 @@ int main()
     printf("\nCreating Tree...\n");
     syntaxTree = parse();
 
+    percorreArovre(syntaxTree, "global");
+
     printf("\nPrinting Tree...\n");
     printTree(syntaxTree);
     printf("\nSyntax Tree printed successfully\n");
     
+    
+
     printf("\nBuilding symbol table...\n");
     printf("\nPrinting symbol table...\n");
     buildSymtab(syntaxTree);
