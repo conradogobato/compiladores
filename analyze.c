@@ -1,25 +1,13 @@
-/****************************************************/
-/* File: analyze.c                                  */
-/* Semantic analyzer implementation                 */
-/* for the TINY compiler                            */
-/* Compiler Construction: Principles and Practice   */
-/* Kenneth C. Louden                                */
-/****************************************************/
-
 #include "globals.h"
 #include "symtab.h"
 #include "analyze.h"
 #include <stdio.h>
 
-/* counter for variable memory locations */
+
 static int location = 0;
 static int first = 0;
-//char * scope = "global";
-/* Procedure traverse is a generic recursive 
- * syntax tree traversal routine:
- * it applies preProc in preorder and postProc 
- * in postorder to tree pointed to by t
- */
+static int mainDeclared = 0;
+
 static void traverse( TreeNode * t,
                void (* preProc) (TreeNode *),
                void (* postProc) (TreeNode *) )
@@ -55,32 +43,29 @@ void percorreArovre(TreeNode *t, char *scope){
 }
 
 
-/* nullProc is a do-nothing procedure to 
- * generate preorder-only or postorder-only
- * traversals from traverse
- */
+
 static void nullProc(TreeNode * t)
 { if (t==NULL) return;
   else return;
 }
 
-/* Procedure insertNode inserts 
- * identifiers stored in t into 
- * the symbol table 
- */
+
 static void insertNode(TreeNode * t)
 { switch (t->nodekind)
   { case StmtK:
       switch (t->kind.stmt)
       { case AssignK:
             if(st_lookup(t->attr.name) == -1){
-                fprintf("variável %s nao declarada", t->attr.name);
-            }else{
+                printf("Semantic error at row (%d): variable '%s' not declared\n", t->lineno, t->type);
+                exit(EXIT_FAILURE); 
+            }
+            else if(st_lookup_type(t->attr.name) == -1){
+              printf("Semantic error at row (%d): variable '%s' type is not Integer\n", t->lineno, t->attr.name);
+              exit(EXIT_FAILURE); 
+            }
+            else{
                 st_insert(t->attr.name,t->lineno,0,t->type, IdK, t->scope);
             }
-       // case EndFunctionK: scope = "global";
-
-        
         default:
             break;
       }
@@ -95,22 +80,26 @@ static void insertNode(TreeNode * t)
           break;
 
         case CALLfunctionK:
-            if (st_lookup(t->attr.name) == -1)
-                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, t->scope);
-            else
+            if (st_lookup(t->attr.name) == -1){
+                printf("Semantic error at row (%d): function '%s' not declared\n", t->lineno, t->attr.name);
+                exit(EXIT_FAILURE); 
+            }
+            else{
                 st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope);
+            }
             break;
 
         case FunctionK:
-            if (st_lookup(t->attr.name) == -1){
-                st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, t->scope);
-                //scope = t->attr.name;
+            if (st_lookup(t->attr.name) == -1) {
+                st_insert(t->attr.name, t->lineno, location++, t->type, t->kind.exp, t->scope);
+                if (strcmp(t->attr.name, "main") == 0) {
+                  mainDeclared = 1;
+                }
+            } else {
+                printf("Semantic error at row (%d): function '%s' already declared\n", t->lineno, t->attr.name);
+                exit(EXIT_FAILURE); 
             }
-            else
-                st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope);
             break;
-
-        
         default:
           break;
       }
@@ -120,11 +109,12 @@ static void insertNode(TreeNode * t)
   }
 }
 
-/* Function buildSymtab constructs the symbol 
- * table by preorder traversal of the syntax tree
- */
 void buildSymtab(TreeNode * syntaxTree)
 { traverse(syntaxTree,insertNode,nullProc);
+  if(mainDeclared == 0){
+        printf("Semantic error: main function not declared\n");
+        exit(EXIT_FAILURE);
+  }
   if (TraceAnalyze)
   { fprintf(listing,"\nSymbol table:\n\n");
     printSymTab(listing);
@@ -136,9 +126,7 @@ static void typeError(TreeNode * t, char * message)
   Error = TRUE;
 }
 
-/* Procedure checkNode performs
- * type checking at a single tree node
- */
+
 static void checkNode(TreeNode * t)
 { switch (t->nodekind)
   { case ExpK:
@@ -188,9 +176,7 @@ static void checkNode(TreeNode * t)
   }
 }
 
-/* Procedure typeCheck performs type checking 
- * by a postorder syntax tree traversal
- */
+
 void typeCheck(TreeNode * syntaxTree)
 { traverse(syntaxTree,nullProc,checkNode);
 }

@@ -57,6 +57,7 @@ typedef struct treeNode
      struct treeNode * sibling;
      int lineno;
      char * scope;
+     int declare;
      NodeKind nodekind;
      union { StmtKind stmt; ExpKind exp;} kind;
      union { TokenType op;

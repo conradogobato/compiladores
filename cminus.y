@@ -74,7 +74,8 @@ var_declaracao:
     tipo_especificador id EOL   {
         $$ = $1; 
         $$->child[0] = $2;
-        $2->type = $1->type;       
+        $2->type = $1->type;
+        $$->declare = 1;
     }
     | tipo_especificador id ACO num FCO EOL {
         $$ = $1;
@@ -248,9 +249,9 @@ retorno_decl:
 ;
 
 expressao:
-    var ATR expressao   {
+    var ATR expressao {
         $$ = newStmtNode(AssignK);
-        $$->attr.name = "Atribuicao";
+        $$->attr.name = $1->attr.name; 
         $$->child[0] = $1;
         $$->child[1] = $3;
     }

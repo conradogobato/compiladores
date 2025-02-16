@@ -45,6 +45,7 @@ typedef struct BucketListRec
      LineList lines;
      int memloc ; /* memory location for variable */
      char * scope;
+     int declare;
      ExpType datatype;
      ExpKind idtype;
      struct BucketListRec * next;
@@ -95,6 +96,23 @@ int st_lookup ( char * name )
   if (l == NULL) return -1;
   else return l->memloc;
 }
+
+int st_lookup_type (char *name) {
+    int h = hash(name);
+    BucketList l = hashTable[h];
+    while (l != NULL) {
+        if (strcmp(name, l->name) == 0) {           
+            if (l->idtype == 4) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+        l = l->next;
+    }
+    return -1;
+}
+
 
 /* Procedure printSymTab prints a formatted 
  * listing of the symbol table contents 

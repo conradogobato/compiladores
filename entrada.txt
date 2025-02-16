@@ -1,7 +1,6 @@
 int a;
 
 int gcd (int u, int v){
-    yield();
 	if (v == 0) return u ;
 	else return gcd(v, u/v);
 	/* u-u/v*v == u mod v */
@@ -9,10 +8,12 @@ int gcd (int u, int v){
 
 int b;
 
+
+
 void main(void)
 {
 	int x; int y;
+	int x;
 	x = 12; y = 8;
-	output(8192 + gcd(x,y));
-    sleep(2000);
+	
 }
