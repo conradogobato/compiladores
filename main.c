@@ -40,8 +40,6 @@ int main()
     printTree(syntaxTree);
     printf("\nSyntax Tree printed successfully\n");
     
-    
-
     printf("\nBuilding symbol table...\n");
     printf("\nPrinting symbol table...\n");
     buildSymtab(syntaxTree);

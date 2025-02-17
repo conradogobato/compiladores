@@ -154,12 +154,3 @@ void printTree( TreeNode * tree )
   }
   UNINDENT;
 }
-
-
-// void abrirArq(void) {
-//     yyin = fopen("entrada.txt", "r");
-//     if (!yyin) {
-//         fprintf(stderr, "Erro ao abrir o arquivo entrada.txt\n");
-//         exit(EXIT_FAILURE);
-//     }
-// }

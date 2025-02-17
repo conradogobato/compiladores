@@ -43,7 +43,6 @@ void percorreArovre(TreeNode *t, char *scope){
 }
 
 
-
 static void nullProc(TreeNode * t)
 { if (t==NULL) return;
   else return;
@@ -56,16 +55,16 @@ static void insertNode(TreeNode * t)
       switch (t->kind.stmt)
       { case AssignK:
             if(st_lookup(t->attr.name) == -1){
-                printf("Semantic error at row (%d): variable '%s' not declared\n", t->lineno, t->type);
+                printf("Semantic error at row (%d): variable '%s' not declared\n", t->lineno, t->attr.name);
                 exit(EXIT_FAILURE); 
             }
             else if(st_lookup_type(t->attr.name) == -1){
               printf("Semantic error at row (%d): variable '%s' type is not Integer\n", t->lineno, t->attr.name);
               exit(EXIT_FAILURE); 
             }
-            else{
-                st_insert(t->attr.name,t->lineno,0,t->type, IdK, t->scope);
-            }
+            // else{
+            //     st_insert(t->attr.name,t->lineno,0,t->type, IdK, t->scope);
+            // }
         default:
             break;
       }
@@ -73,14 +72,15 @@ static void insertNode(TreeNode * t)
     case ExpK:
       switch (t->kind.exp)
       { case IdK:
-          if (st_lookup(t->attr.name) == -1)
+          if(st_lookup_scope(t->attr.name, t->scope) == -1){
             st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, t->scope);
+          }
           else 
-            st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope);
+          st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope);
           break;
 
         case CALLfunctionK:
-            if (st_lookup(t->attr.name) == -1){
+            if ((st_lookup(t->attr.name) == -1) && strcmp(t->attr.name, "output") != 0 && strcmp(t->attr.name, "input") != 0 && strcmp(t->attr.name, "yield") != 0 && strcmp(t->attr.name, "sleep") != 0){
                 printf("Semantic error at row (%d): function '%s' not declared\n", t->lineno, t->attr.name);
                 exit(EXIT_FAILURE); 
             }
@@ -100,6 +100,15 @@ static void insertNode(TreeNode * t)
                 exit(EXIT_FAILURE); 
             }
             break;
+
+        case TypeK:
+            if(t->child[0] == NULL) return;
+            if((t->type == Void) && (t->child[0]->kind.exp != FunctionK)){
+              printf("Semantic error at row (%d): variable '%s' declared void\n", t->lineno, t->child[0]->attr.name);
+              exit(EXIT_FAILURE); 
+            }
+            break;
+
         default:
           break;
       }

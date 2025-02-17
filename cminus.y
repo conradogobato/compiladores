@@ -285,26 +285,32 @@ relacional:
     LT  {
         $$ = newExpNode(OpK);
         $$->attr.op = LT;
+        $$->type = Boolean;
     }
     | GT    {
         $$ = newExpNode(OpK);
         $$->attr.op = GT;
+        $$->type = Boolean;
     }
     | LET   {
         $$ = newExpNode(OpK);
         $$->attr.op = LET;
+        $$->type = Boolean;
     }
     | GET   {
         $$ = newExpNode(OpK);
         $$->attr.op = GET;
+        $$->type = Boolean;
     }
     | EQ    {
         $$ = newExpNode(OpK);
         $$->attr.op = EQ;
+        $$->type = Boolean;
     }
     | DIF   {
         $$ = newExpNode(OpK);
         $$->attr.op = DIF;
+        $$->type = Boolean;
     }
 ;
 

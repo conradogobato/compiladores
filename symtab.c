@@ -3,14 +3,10 @@
 #include <string.h>
 #include "symtab.h"
 
-/* SIZE is the size of the hash table */
 #define SIZE 211
 
-/* SHIFT is the power of two used as multiplier
-   in hash function  */
 #define SHIFT 4
 
-/* the hash function */
 static int hash ( char * key )
 { if (key == NULL) {
         fprintf(stderr, "Erro: chave NULL passada para hash()\n");
@@ -26,20 +22,11 @@ static int hash ( char * key )
   return temp;
 }
 
-/* the list of line numbers of the source 
- * code in which a variable is referenced
- */
 typedef struct LineListRec
    { int lineno;
      struct LineListRec * next;
    } * LineList;
 
-/* The record in the bucket lists for
- * each variable, including name, 
- * assigned memory location, and
- * the list of line numbers in which
- * it appears in the source code
- */
 typedef struct BucketListRec
    { char * name;
      LineList lines;
@@ -54,16 +41,20 @@ typedef struct BucketListRec
 /* the hash table */
 static BucketList hashTable[SIZE];
 
-/* Procedure st_insert inserts line numbers and
- * memory locations into the symbol table
- * loc = memory location is inserted only the
- * first time, otherwise ignored
- */
 void st_insert( char * name, int lineno, int loc, ExpType datatype, ExpKind idtype, char * scope )
 { int h = hash(name);
-  BucketList l =  hashTable[h];
-  while ((l != NULL) && (strcmp(name,l->name) != 0))
+  BucketList l = hashTable[h];
+
+  int global = 0;
+  while ((l != NULL)){
+    if(strcmp(name,l->name) == 0){
+      if(strcmp(scope, l->scope) == 0){
+        break;
+      }
+    }
     l = l->next;
+  }
+
   if (l == NULL) /* variable not yet in table */
   { l = (BucketList) malloc(sizeof(struct BucketListRec));
     l->name = name;
@@ -83,11 +74,16 @@ void st_insert( char * name, int lineno, int loc, ExpType datatype, ExpKind idty
     t->next->lineno = lineno;
     t->next->next = NULL;
   }
-} /* st_insert */
+} 
 
-/* Function st_lookup returns the memory 
- * location of a variable or -1 if not found
- */
+void check_scope(){
+  BucketList l = hashTable[-1];
+
+  while(l != NULL){
+
+  }
+}
+
 int st_lookup ( char * name )
 { int h = hash(name);
   BucketList l =  hashTable[h];
@@ -114,10 +110,22 @@ int st_lookup_type (char *name) {
 }
 
 
-/* Procedure printSymTab prints a formatted 
- * listing of the symbol table contents 
- * to the listing file
- */
+int st_lookup_scope ( char * name, char * scope )
+{ int h = hash(name);
+  BucketList l =  hashTable[h];
+  int global = 0;
+  while ((l != NULL)){
+    if(strcmp(name,l->name) == 0){
+      if(strcmp(scope, l->scope) == 0){
+        return l->memloc;
+      }
+    }
+    l = l->next;
+  }
+  return -1;
+}
+
+
 void printSymTab(FILE * listing)
 { int i;
   char * data;
@@ -173,4 +181,4 @@ void printSymTab(FILE * listing)
       }
     }
   }
-} /* printSymTab */
+} 
