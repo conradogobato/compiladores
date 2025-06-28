@@ -103,7 +103,7 @@ void printTree( TreeNode * tree )
           fprintf(listing,"while:\n");
           break;
         case AssignK:
-          fprintf(listing,"assign to: \n");
+          fprintf(listing,"assign to: \n teste 0: %s\n teste 1: %s\n", tree->child[0]->attr.name,tree->child[1]->teste_name);
           break;
         case ReturnK:
           fprintf(listing,"return:\n");
@@ -133,13 +133,13 @@ void printTree( TreeNode * tree )
           fprintf(listing,"id: %s\n",tree->attr.name);
           break;
         case TypeK:
-          fprintf(listing,"type: %s\n",tree->attr.name);
+          fprintf(listing,"declaração: %s\n",tree->attr.name);
           break;
         case FunctionK:
           fprintf(listing,"function: %s\n",tree->attr.name);
           break;
         case CALLfunctionK:
-          fprintf(listing,"call to function: %s\n",tree->attr.name);
+          fprintf(listing,"call to function: %s -> voidFunc: %d -> type: %s\n",tree->attr.name, tree->voidFunc, tree->type);
           break;
         
         default:

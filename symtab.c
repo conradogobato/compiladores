@@ -22,30 +22,13 @@ static int hash ( char * key )
   return temp;
 }
 
-typedef struct LineListRec
-   { int lineno;
-     struct LineListRec * next;
-   } * LineList;
-
-typedef struct BucketListRec
-   { char * name;
-     LineList lines;
-     int memloc ; /* memory location for variable */
-     char * scope;
-     int declare;
-     ExpType datatype;
-     ExpKind idtype;
-     struct BucketListRec * next;
-   } * BucketList;
-
 /* the hash table */
 static BucketList hashTable[SIZE];
 
-void st_insert( char * name, int lineno, int loc, ExpType datatype, ExpKind idtype, char * scope )
+void st_insert( char * name, int lineno, int loc, ExpType datatype, ExpKind idtype, char * scope) //int declare
 { int h = hash(name);
   BucketList l = hashTable[h];
 
-  int global = 0;
   while ((l != NULL)){
     if(strcmp(name,l->name) == 0){
       if(strcmp(scope, l->scope) == 0){
@@ -76,14 +59,6 @@ void st_insert( char * name, int lineno, int loc, ExpType datatype, ExpKind idty
   }
 } 
 
-void check_scope(){
-  BucketList l = hashTable[-1];
-
-  while(l != NULL){
-
-  }
-}
-
 int st_lookup ( char * name )
 { int h = hash(name);
   BucketList l =  hashTable[h];
@@ -109,15 +84,32 @@ int st_lookup_type (char *name) {
     return -1;
 }
 
+int st_lookup_void_func (char *name) {
+  int h = hash(name);
+  BucketList l = hashTable[h];
+  while (l != NULL) {
+      if (strcmp(name, l->name) == 0) {           
+        if(strcmp(l->scope,"global") == 0 && l->datatype == Integer){
+          return 1;
+        }
+      }
+      l = l->next;
+  }
+  return -1;
+}
 
-int st_lookup_scope ( char * name, char * scope )
-{ int h = hash(name);
+
+int st_lookup_scope ( char * name, char * scope ) // novo no -> name: vet e scope: main e declare = 1
+{ int h = hash(name);                         // tabela hash -> name: vet e scope: global
   BucketList l =  hashTable[h];
-  int global = 0;
+
   while ((l != NULL)){
     if(strcmp(name,l->name) == 0){
       if(strcmp(scope, l->scope) == 0){
         return l->memloc;
+      }
+      if(strcmp(l->scope, "global") == 0){
+        return -2;
       }
     }
     l = l->next;
@@ -130,15 +122,15 @@ void printSymTab(FILE * listing)
 { int i;
   char * data;
   char * id;
-  fprintf(listing,"Variable Name  Location  Scope  Datatype  Idtype  Line Numbers\n");
-  fprintf(listing,"-------------  --------  -----  --------  ------  ------------\n");
+  fprintf(listing,"Variable Name  Scope           Datatype  Idtype  Line Numbers\n");
+  fprintf(listing,"-------------  -----           --------  ------  ------------\n");
   for (i=0;i<SIZE;++i)
   { if (hashTable[i] != NULL)
     { BucketList l = hashTable[i];
       while (l != NULL)
       { LineList t = l->lines;
         fprintf(listing,"%-14s ",l->name);
-        fprintf(listing,"%-8d  ",l->memloc);
+       // fprintf(listing,"%-8d  ",l->memloc);
         fprintf(listing,"%-14s  ",l->scope);
         switch (l->datatype)
         {

@@ -60,7 +60,8 @@ declaracao:
 id: 
     ID {
         $$ = newExpNode(IdK);
-        $$->attr.name = copyString(tokenString);
+        $$->attr.name = copyString(tokenString); 
+        $$->teste_name = copyString(tokenString);  
         savedName = copyString(tokenString);
     }
 
@@ -68,18 +69,21 @@ num:
     NUM {
         $$ = newExpNode(ConstK);
         $$->attr.val = atoi(tokenString);
+        $$->teste_name = "const";
     }
 
 var_declaracao:
     tipo_especificador id EOL   {
         $$ = $1; 
         $$->child[0] = $2;
+        $2->declare = 1;
         $2->type = $1->type;
-        $$->declare = 1;
+        
     }
     | tipo_especificador id ACO num FCO EOL {
         $$ = $1;
         $$->child[0] = $2;
+        $2->declare = 1;
         $2->type = $1->type;       
         $2->child[0] = $4;
     }
@@ -88,7 +92,6 @@ var_declaracao:
 tipo_especificador:
     INT {
         $$ = newExpNode(TypeK);
-        $$->attr.val = atoi(tokenString);
         $$->type = Integer;
         $$->attr.name = "int";    }
     | VOID  {
@@ -115,7 +118,6 @@ params:
     }
     | VOID  {
         $$ = newExpNode(TypeK);
-        $$->type = Void;
         $$->attr.name = "void";
     }
 ;
@@ -140,11 +142,13 @@ param:
     tipo_especificador id   {
         $$ = $1;
         $$->child[0] = $2;
+        $2->declare = 1;
         $2->type = $1->type;
     }
     | tipo_especificador id ACO FCO {
         $$ = $1;
         $$->child[0] = $2;
+        $2->declare = 1;
         $2->type = $1->type;  
     }
 ;

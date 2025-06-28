@@ -62,6 +62,16 @@ static void insertNode(TreeNode * t)
               printf("Semantic error at row (%d): variable '%s' type is not Integer\n", t->lineno, t->attr.name);
               exit(EXIT_FAILURE); 
             }
+            else if(t->child[1] != NULL){
+                  if(st_lookup_void_func(t->child[1]->teste_name) != 1 && t->child[1]->kind.exp == CALLfunctionK){
+                    printf("Semantic error at row (%d): variable '%s' cannot be assigned a void function\n", t->lineno, t->attr.name);
+                    exit(EXIT_FAILURE);
+                  }
+            }
+            // // else if(t->child[1]->voidFunc == 1){
+            //   printf("Semantic error at row (%d): variable '%s' cannot be assigned a void function\n", t->lineno, t->attr.name);
+            //   exit(EXIT_FAILURE);
+            // }
             // else{
             //     st_insert(t->attr.name,t->lineno,0,t->type, IdK, t->scope);
             // }
@@ -72,11 +82,31 @@ static void insertNode(TreeNode * t)
     case ExpK:
       switch (t->kind.exp)
       { case IdK:
+
+          // add função para conferir se o tipo do id é TypeK
+          // se for, é uma declaração de variável e deve ser adicionada na tabela de simbolos
+          // se não for, é uma operação e deve ser adicionada apenas a linha na tabela de simbolos
+          // se não existir na tabela de simbolos, deve apresentar erro de variável não declarada
+
+          // validar ideia de passar int global no struct da arvore, e atualizar para 1 durante a funcao percorreArvore
+          
+          // declaração name: vet e scope: main
+
           if(st_lookup_scope(t->attr.name, t->scope) == -1){
-            st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, t->scope);
+            if(t->declare == 1){
+              st_insert(t->attr.name,t->lineno,location++,t->type, t->kind.exp, t->scope); //add tabela hash
+            }
           }
-          else 
-          st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope);
+          else if(st_lookup_scope(t->attr.name, t->scope) == -2){
+                  if(t->declare == 1){ 
+                    printf("Semantic error at row (%d): Variable (%s) already declared globally\n", t->lineno, t->attr.name);
+                    exit(EXIT_FAILURE);
+                } else
+                    st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, "global"); //add linha
+          }
+          else{
+            st_insert(t->attr.name,t->lineno,0,t->type, t->kind.exp, t->scope); //add linha
+          }
           break;
 
         case CALLfunctionK:

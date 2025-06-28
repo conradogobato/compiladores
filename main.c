@@ -1,6 +1,7 @@
 #include "globals.h"
 #include "analyze.h"
 #include "symtab.h"
+#include "cgen.h"
 
 int lineno = 0;    // ou outro valor inicial, conforme necessário
 int indentno = 0;  // Iniciar a indentação
@@ -44,5 +45,9 @@ int main()
     printf("\nPrinting symbol table...\n");
     buildSymtab(syntaxTree);
     printf("\nSuccess\n");
+
+    cGen(syntaxTree);
+
+    printIntermediateCode();
 
 }
