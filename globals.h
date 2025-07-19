@@ -56,6 +56,9 @@ typedef struct treeNode
    { struct treeNode * child[MAXCHILDREN];
      struct treeNode * sibling;
      int lineno;
+     int check;
+     int param;
+     int reg_value;
      char * scope;
      char *teste_name;
      int declare;

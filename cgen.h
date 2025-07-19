@@ -14,23 +14,36 @@ typedef struct {
 } Address;
 
 typedef struct {
-    char op[10];
+    int line;
+    char op[20];
     char arg1[20];
     char arg2[20];
-    int result;
+    char arg3[20];
 } Quad;
 
-extern Quad codecodecode[20];
+extern Quad codecodecode[100];
 extern int emitLoc;
 
 void genExp(TreeNode *t);
 
+void codeGen(TreeNode *tree);
+
 void cGen(TreeNode *t);
 
-void emit(char *op, char *arg1, char *arg2, int result);
+void emit(char *op, char *arg1, char *arg2, char *arg3);
 
 void printIntermediateCode();
 
 char* get_reg(int a);
+
+char* newLabel();
+
+char* int_to_string(int a);
+
+void init_reg_stack();
+
+int get_next_reg();
+
+void free_reg(int reg);
 
 #endif

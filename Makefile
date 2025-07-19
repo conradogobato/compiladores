@@ -10,10 +10,10 @@ EXEC = compilador
 # Arquivos fontes
 LEX_SRC = cminus.l
 YACC_SRC = cminus.y
-C_SRC = globals.c main.c symtab.c analyze.c cgen.c
+C_SRC = globals.c main.c symtab.c analyze.c cgen.c assembler.c
 
 # Arquivos de objetos
-OBJ = globals.o main.o symtab.o analyze.o cgen.o cminus.tab.o lex.yy.o
+OBJ = globals.o main.o symtab.o analyze.o cgen.o assembler.o cminus.tab.o lex.yy.o
 
 # Regras padrão
 all: $(EXEC)
@@ -45,6 +45,9 @@ analyze.o: analyze.c analyze.h symtab.h globals.h
 
 cgen.o: cgen.c cgen.h globals.h
 	$(CC) $(CFLAGS) -c cgen.c
+
+assembler.o: assembler.c assembler.h globals.h
+	$(CC) $(CFLAGS) -c assembler.c
 
 cminus.tab.o: cminus.tab.c cminus.tab.h
 	$(CC) $(CFLAGS) -c cminus.tab.c

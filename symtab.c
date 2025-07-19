@@ -88,7 +88,8 @@ int st_lookup_void_func (char *name) {
   int h = hash(name);
   BucketList l = hashTable[h];
   while (l != NULL) {
-      if (strcmp(name, l->name) == 0) {           
+      if (strcmp(name, l->name) == 0) {
+        if(strcmp(name, "input") == 0 && strcmp(name, "output") == 0 && strcmp(name, "sleep") == 0) return 1;          
         if(strcmp(l->scope,"global") == 0 && l->datatype == Integer){
           return 1;
         }

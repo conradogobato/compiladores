@@ -26,6 +26,9 @@ void percorreArovre(TreeNode *t, char *scope){
   if(t == NULL) return;
 
   t->scope = scope;
+  t->check = 0;
+  t->param = 0;
+  t->reg_value = 0;
 
   if(t->kind.exp == FunctionK) {
       
@@ -65,7 +68,7 @@ static void insertNode(TreeNode * t)
             else if(t->child[1] != NULL){
                   if(st_lookup_void_func(t->child[1]->teste_name) != 1 && t->child[1]->kind.exp == CALLfunctionK){
                     printf("Semantic error at row (%d): variable '%s' cannot be assigned a void function\n", t->lineno, t->attr.name);
-                    exit(EXIT_FAILURE);
+                    //exit(EXIT_FAILURE);
                   }
             }
             // // else if(t->child[1]->voidFunc == 1){
@@ -152,7 +155,7 @@ void buildSymtab(TreeNode * syntaxTree)
 { traverse(syntaxTree,insertNode,nullProc);
   if(mainDeclared == 0){
         printf("Semantic error: main function not declared\n");
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
   }
   if (TraceAnalyze)
   { fprintf(listing,"\nSymbol table:\n\n");

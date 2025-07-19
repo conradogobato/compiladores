@@ -1,279 +1,337 @@
+
+
+
 #include "globals.h"
 #include "symtab.h"
 #include "analyze.h"
 #include "cgen.h"
 #include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_REGS 100
 
 int emitLoc = 0;
-Quad codecodecode[20];
+Quad codecodecode[100];
 int cont_reg = 0;
-int temp_reg1 = 0;
-int temp_reg2 = 0;
+
+int labelCount = 0;
 
 static BucketList *hashTable;
-/*
-void genExp(TreeNode *tree) {
-    if (tree == NULL) return;
 
-    switch (tree->kind.exp) {
-        case ConstK:
-            emit("LDC", 0, tree->attr.val, 0); // carrega constante em R0
-            break;
 
-        case IdK: {
-            int loc = st_lookup_scope(tree->attr.name, tree->scope);
-            emit("LD", 0, loc, 0); // carrega valor da variável
-            break;
-        }
+int reg_stack[MAX_REGS];
+int reg_stack_top = 100;
 
-        case OpK: {
-            TreeNode *left = tree->child[0];
-            TreeNode *right = tree->child[1];
-
-            // gera código para o operando esquerdo
-            genExp(left);
-            emit("ST", 0, -1, 1); // salva R0 no topo da pilha (R1)
-
-            // gera código para o operando direito
-            genExp(right);
-            emit("LD", 1, -1, 1); // carrega o operando esquerdo de volta
-
-            switch (tree->attr.op) {
-                case SOM:
-                    emit("ADD", 0, 1, 0); // R0 = R1 + R0
-                    break;
-                case SUB:
-                    emit("SUB", 0, 1, 0); // R0 = R1 - R0
-                    break;
-                case MUL:
-                    emit("MUL", 0, 1, 0); // R0 = R1 * R0
-                    break;
-                case DIV:
-                    emit("DIV", 0, 1, 0); // R0 = R1 / R0
-                    break;
-                default:
-                    fprintf(stderr, "Erro: operador desconhecido.\n");
-            }
-            break;
-        }
-
-        case TypeK:
-            break;
-
-        // case CallK:
-        //     // assume que os argumentos já foram empilhados
-        //     for (int i = 0; i < tree->numChildren; i++) {
-        //         genExp(tree->child[i]);
-        //         emit("ST", 0, i, 1); // salva argumento
-        //     }
-        //     int addr = st_getFuncAddr(tree->attr.name);
-        //     emit("CALL", 0, addr, 0); // chamada de função
-        //     break;
-
-        default:
-            fprintf(stderr, "Erro: tipo de expressão não suportado.\n");
+void init_reg_stack() {
+    reg_stack_top = 0;  // Reinicia o topo da pilha
+    for (int i = 0; i < MAX_REGS; i++) {
+        reg_stack[i] = i;  // Inicializa com todos os registradores disponíveis
     }
+    reg_stack_top = MAX_REGS;  // Todos os registradores estão disponíveis inicialmente
 }
 
-
-void genStmt(TreeNode *tree) {
-    if (tree == NULL) return;
-
-    switch (tree->kind.stmt) {
-        case AssignK: {
-            genExp(tree->child[1]); // gera código para RHS
-            int loc = st_lookup_scope(tree->attr.name, tree->scope);
-            emit("ST", 0, loc, 0); // armazena resultado em memória
-            break;
-        }
-
-        // case IfK: {
-        //     genExp(tree->child[0]); // condição
-        //     int jumpToElse = emitLoc++;
-        //     genStmt(tree->child[1]); // then
-        //     int jumpToEnd = emitLoc++;
-        //     int elseLoc = emitLoc;
-        //     genStmt(tree->child[2]); // else
-
-        //     int endLoc = emitLoc;
-
-        //     fprintf(code, "%3d: JEQ R0,0,%d\n", jumpToElse, elseLoc); // salto se falso
-        //     fprintf(code, "%3d: JMP %d\n", jumpToEnd, endLoc);        // pular else
-        //     break;
-        // }
-
-        // case WhileK: {
-        //     int startLoc = emitLoc;
-        //     genExp(tree->child[0]); // condição
-        //     int jumpExit = emitLoc++;
-        //     genStmt(tree->child[1]); // corpo
-        //     emit("JMP", 0, startLoc, 0); // volta ao início
-        //     fprintf(code, "%3d: JEQ R0,0,%d\n", jumpExit, emitLoc); // pula se falso
-        //     break;
-        // }
-
-        // case ReturnK: {
-        //     genExp(tree->child[0]); // gera valor de retorno
-        //     emit("RET", 0, 0, 0);   // retorna
-        //     break;
-        // }
-
-        // case CompoundK:
-        //     for (int i = 0; i < MAXCHILDREN; i++) {
-        //         genStmt(tree->child[i]);
-        //     }
-        //     break;
-
-        default:
-            fprintf(stderr, "Erro: tipo de comando não suportado.\n");
+int get_next_reg() {
+    if (reg_stack_top <= 0) {
+        fprintf(stderr, "Erro: sem registradores disponíveis\n");
+        exit(1);
     }
-}*/
+    return reg_stack[--reg_stack_top];  // Pega o próximo registrador disponível
+}
+
+void free_reg(int reg) {
+    if (reg_stack_top >= MAX_REGS) {
+        fprintf(stderr, "Erro: pilha de registradores cheia\n");
+        return;
+    }
+    reg_stack[reg_stack_top++] = reg;  // Libera o registrador
+}
 
 void genExp(TreeNode *tree) {
+    //fprintf(stderr,"genExp talvez nulo\n");
     if (tree == NULL) return;
+    //fprintf(stderr,"genExp nao nulo\n");
 
     char temp[20];
 
     switch (tree->kind.exp) {
         case ConstK: {
+            //temp_reg1 = get_next_reg();
+            fprintf(stderr,"constK: %d\n", tree->attr.val);
             sprintf(temp, "%d", tree->attr.val);
-            emit("LOADI", temp, "", cont_reg++); // carrega constante em R0
+            emit("LOADI", temp, "", get_reg(cont_reg)); // carrega constante em R0
+            tree->check = 1;
+            //tree->reg_value = temp_reg1;
             break;
         }
 
         case IdK: {
-           // emit("LOAD", tree->attr.name, "", cont_reg++); // carrega valor da variável
+            //temp_reg1 = get_next_reg();
+            fprintf(stderr,"idK: %s\n", tree->attr.name);
+            if(tree->param == 1) emit("LOAD", tree->attr.name, "", get_reg(cont_reg)); // carrega valor da variável
+            //tree->reg_value = temp_reg1;
             break;
         }
 
         case OpK: {
             TreeNode *left = tree->child[0];
             TreeNode *right = tree->child[1];
+            fprintf(stderr,"opK right: %d\n",right->kind.exp);
 
-            // if(right->kind.exp == OpK){
-            //     genExp(right);
-            // }
-            //genExp(left);
-            temp_reg1 = cont_reg;
-            emit("Load", left->attr.name, "", cont_reg++); // salva R0 no topo da pilha
+            int result_reg, temp_reg1 = 0, temp_reg2 = 0;
 
-            //emit("Store", left->attr.name, "", cont_reg++); // salva R0 no topo da pilha
+            if((left->kind.exp == ConstK) || (left->kind.exp == OpK)){
+                cGen(left);
+                temp_reg1 = cont_reg++;
+                tree->check = 1;     
+            }else {
+                temp_reg1 = cont_reg; 
+                emit("LOAD", left->attr.name, "-", get_reg(cont_reg++));
+                
+            }// salva R0 no topo da pilha
 
-            //genExp(right);
-            temp_reg2 = cont_reg;
-            emit("Load", right->attr.name, "", cont_reg++); // salva R0 no topo da pilha
-            //emit("Store", right->attr.name, "", cont_reg++); // salva R0 no topo da pilha
+            fprintf(stderr,"Passou cGen right %d \n", right->kind.exp);            
 
+            if((right->kind.exp == ConstK) || (right->kind.exp == OpK)){
+                cGen(right);
+                temp_reg2 = cont_reg++;
+                tree->check = 1;
+                
+            }else {
+                temp_reg2 = cont_reg; 
+                emit("LOAD", right->attr.name, "-", get_reg(cont_reg++));
+                
+            }
+
+            fprintf(stderr,"Passou cGen right \n");
             switch (tree->attr.op) {
                 case SOM:
-                    emit("ADD", get_reg(temp_reg1), get_reg(temp_reg2), cont_reg++); // R0 = R1 + R0
+                    emit("ADD", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg)); // R0 = R1 + R0
                     break;
                 case SUB:
-                    emit("SUB", get_reg(temp_reg1), get_reg(temp_reg2), cont_reg++); // R0 = R1 - R0
+                    emit("SUB", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg)); // R0 = R1 - R0
                     break;
                 case MUL:
-                    emit("MUL", get_reg(temp_reg1), get_reg(temp_reg2), cont_reg++); // R0 = R1 * R0
+                    emit("MUL", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg)); // R0 = R1 * R0
                     break;
                 case DIV:
-                    emit("DIV", get_reg(temp_reg1), get_reg(temp_reg2), cont_reg++); // R0 = R1 / R0
+                    emit("DIV", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg));  // R0 = R1 / R0
+                    break;
+                case LT: // Less Than (<)
+                    emit("LT", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg));
+                    break;
+                case GT: // Greater Than (>)
+                    emit("GT", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg));
+                    break;
+                case LET: // Less or Equal Than (<=)
+                    emit("LE", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg));
+                    break;
+                case GET: // Greater or Equal Than (>=)
+                    emit("GE", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg));
+                    break;
+                case EQ: // Equal (==)
+                    emit("EQ", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg));
+                    break;
+                case DIF: // Different (!=)
+                    emit("NE", get_reg(temp_reg1), get_reg(temp_reg2), get_reg(cont_reg));
                     break;
                 default:
                     fprintf(stderr, "Erro: operador desconhecido.\n");
             }
+
+            // Libera registradores temporários (se não vierem de subexpressões)
+            if(!(left->kind.exp == ConstK || left->kind.exp == OpK)) {
+                free_reg(temp_reg1);
+            }
+            if(!(right->kind.exp == ConstK || right->kind.exp == OpK)) {
+                free_reg(temp_reg2);
+            }
+
+            // Armazena o registrador do resultado no nó atual
+            tree->reg_value = result_reg;
+
             break;
         }
 
         case TypeK:{
+            fprintf(stderr,"typeK\n");
+            if(tree->child[0] == NULL) return;
+            
             if(tree->child[0]->kind.exp == FunctionK){
-                emit("FUNC",tree->attr.name ,tree->child[0]->attr.name,0);
+                fprintf(stderr,"typeK son FunctionK: %s\n",tree->child[0]->attr.name);
+                emit("FUNC",tree->child[0]->attr.name, "- ","-");
+                tree->check = 1;
+                cGen(tree->child[0]);
+                emit("END FUNCTION",tree->child[0]->attr.name, "- ","-");
+                //if(strcmp(tree->child[0]->attr.name, 'main') == 0) emit("HALT","-", "- ","-");
             }
-            cGen(tree->child[0]);
             break;
         }
 
         case FunctionK:{
-            cGen(tree->child[0]);
-            cGen(tree->child[1]);
+            fprintf(stderr,"functionK\n");
+            return;
         }
 
+        case CALLfunctionK: {
+            fprintf(stderr, "Gerando código para chamada de função: %s\n", tree->attr.name);
+            tree->check = 1; 
+            
+            TreeNode *arg = tree->child[0];
+            int arg_count = 0;
+            char *arg_regs[10];
+            fprintf(stderr, "Gerando código para chamada de função: %s\n", tree->attr.name);
+
+            while (arg != NULL) {
+                fprintf(stderr, " de função: inside while\n");
+                arg->param = 1;
+                cGen(arg); 
+
+                emit("PARAM",  get_reg(cont_reg++), "", "");
+                arg_count++;
+                arg = arg->sibling;
+                fprintf(stderr, " de função:\n");
+            }
+            
+            emit("CALL", tree->attr.name, int_to_string(arg_count), get_reg(cont_reg));
+            
+            fprintf(stderr, " de função pos emit:\n");
+            return; 
+        }
         default:
-            fprintf(stderr, "Erro: tipo de expressão não suportado.\n");
+            fprintf(stderr, "Erro Exp: %s\n%d\n", tree->attr.name, tree->kind.exp);
     }
 }
 
 void genStmt(TreeNode *tree) {
+    fprintf(stderr,"genStmt talvez nulo\n");
     if (tree == NULL) return;
+    fprintf(stderr,"genStmt nao nulo\n");
 
     char temp[20];
 
     switch (tree->kind.stmt) {
         case AssignK: {
+            fprintf(stderr,"assignK: %s --->  %d\n", tree->child[0]->attr.name, tree->child[1]->attr.name);
             cGen(tree->child[1]);
+            tree->check = 1;
             int loc = st_lookup_scope(tree->attr.name, tree->scope);
-            emit("STORE", tree->attr.name, "", --cont_reg); // guarda resultado na variável
+            emit("STORE", tree->attr.name, "", get_reg(cont_reg++)); 
             break;
         }
         case IfK:  {
-            //if
             
+            TreeNode *p1 = tree->child[0]; 
+            TreeNode *p2 = tree->child[1]; 
+            TreeNode *p3 = tree->child[2]; 
+            fprintf(stderr,"ifK: %d\n", p1->attr.name);
+            tree->check = 1;
+            
+            cGen(p1);
+            
+            char *label1 = newLabel(); 
+            emit("JUMP_FALSE", get_reg(cont_reg), "_", label1);
+
+            cGen(p2);
+            
+            if (p3 != NULL) {
+                fprintf(stderr,"ifK entrou p3:\n");
+                char *label2 = newLabel(); 
+                emit("JUMP", "_", "_", label2);
+                emit("LABEL", "_", "_", label1);
+                cGen(p3);
+                emit("LABEL", "_", "_", label2);
+            } else {
+                emit("LABEL", "_", "_", label1);
+            }
+            break;
         }
+        case WhileK:{
+            TreeNode *p1 = tree->child[0]; 
+            TreeNode *p2 = tree->child[1]; 
+
+            char *label1 = newLabel(); 
+            char *label2 = newLabel(); 
+
+            emit("LABEL", "_", "_", label1);
+            tree->check = 1;
+
+            cGen(p1);
+            
+            emit("JUMP_FALSE", get_reg(cont_reg), "- ", label2);
+
+            cGen(p2);
+            
+            emit("JUMP", "_", "_", label1);
+
+            emit("LABEL", "_", "_", label2);
+            break;
+        }
+        case WriteK:{
+            fprintf(stderr,"WriteK\n");
+            return;}
+
+        case ReturnK:{
+            fprintf(stderr,"ReturnK:\n");
+            tree->check = 1;
+            if(tree->child[0]->kind.exp == CALLfunctionK) cGen(tree->child[0]);
+            emit("RETURN", "_", "_", tree->child[0]->attr.name);
+            return;
+        }
+
         default:
-            fprintf(stderr, "Erro: tipo de comando não suportado.\n");
+            fprintf(stderr, "Erro Stmt: %s\n%d\n", tree->attr.name, tree->kind.stmt);
     }
 }
 
 void cGen(TreeNode *tree) {
+    //fprintf(stderr,"cGen talves nulo\n");
     if (tree == NULL) return;
-
+    //fprintf(stderr,"cGen nao nulo\n");
+    int i =0;
     switch (tree->nodekind) {
         case StmtK:
+            fprintf(stderr,"CALL GENSTMT\n");
             genStmt(tree);
             break;
         case ExpK:
+            fprintf(stderr,"CALL GENEXP: \n");
             genExp(tree);
             break;
     }
-
-    cGen(tree->sibling);
+    
+    for (int i = 0; i < MAXCHILDREN; i++){
+        if(tree->check == 0){
+            cGen(tree->child[i]);
+        }
+    }
+    if(tree->param == 0) cGen(tree->sibling);
 }
 
 
-// void cGen(TreeNode *tree) {
-//     if (tree == NULL) return;
-//     if (tree->nodekind == StmtK)
-//         genStmt(tree);
-//     else if (tree->nodekind == ExpK)
-//         genExp(tree);
-
-//     for (int i = 0; i < MAXCHILDREN; i++)
-//         cGen(tree->child[i]);
-//     cGen(tree->sibling);
-// }
-
-// void emit(char *op, int r, int d, int s) {
-//     fprintf(codecodecode, "%3d: %s R%d,%d(R%d)\n", emitLoc++, op, r, d, s);
-// }
-
-void emit(char *op, char *arg1, char *arg2, int result) {
+void emit(char *op, char *arg1, char *arg2, char* arg3) {
     strcpy(codecodecode[emitLoc].op, op);
     strcpy(codecodecode[emitLoc].arg1, arg1);
     strcpy(codecodecode[emitLoc].arg2, arg2);
-    codecodecode[emitLoc].result = result;
+    strcpy(codecodecode[emitLoc].arg3, arg3);
+    codecodecode[emitLoc].line = emitLoc;
     emitLoc++;
+    
 }
 
 void printIntermediateCode() {
     for (int i = 0; i < emitLoc; ++i) {
-        printf("%3d: (%s, %s, %s, R%d)\n", i,
+        printf("%3d: (%s, %s, %s, %s)\n", i,
                codecodecode[i].op,
                codecodecode[i].arg1,
                codecodecode[i].arg2,
-               codecodecode[i].result);
+               codecodecode[i].arg3);
     }
+    //emit('HALT', '-','-','-');
+    //strcpy(codecodecode[emitLoc].op, NULL);
 }
 
 char* get_reg(int a) {
-    char* temp = malloc(10 * sizeof(char));  // suficiente para "R" + número + '\0'
+    char* temp = malloc(32 * sizeof(char));  // suficiente para "R" + número + '\0'
     if (temp == NULL) {
         fprintf(stderr, "Erro de alocação\n");
         exit(1);
@@ -282,9 +340,18 @@ char* get_reg(int a) {
     return temp;
 }
 
-// char* get_reg(int a){
-//     char temp[10];
-//     sprintf(temp, "R%d", a);
+char* newLabel() {
+    char *label = (char*)malloc(5 * sizeof(char));
+    sprintf(label, "L%d", labelCount++);
+    return label;
+}
 
-//     return temp;
-// }
+char* int_to_string(int a) {
+    char* temp = malloc(32 * sizeof(char));  // suficiente para "R" + número + '\0'
+    if (temp == NULL) {
+        fprintf(stderr, "Erro de alocação\n");
+        exit(1);
+    }
+    sprintf(temp, "%d", a);
+    return temp;
+}

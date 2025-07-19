@@ -103,10 +103,10 @@ void printTree( TreeNode * tree )
           fprintf(listing,"while:\n");
           break;
         case AssignK:
-          fprintf(listing,"assign to: \n teste 0: %s\n teste 1: %s\n", tree->child[0]->attr.name,tree->child[1]->teste_name);
+          fprintf(listing,"assign to:\n");
           break;
         case ReturnK:
-          fprintf(listing,"return:\n");
+          fprintf(listing,"return: %s, kind.exp: %d\n", tree->child[0]->attr.name, tree->child[0]->kind.exp);
           break;
         case WriteK:
           fprintf(listing,"start function: \n");

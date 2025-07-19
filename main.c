@@ -2,6 +2,7 @@
 #include "analyze.h"
 #include "symtab.h"
 #include "cgen.h"
+#include "assembler.h"
 
 int lineno = 0;    // ou outro valor inicial, conforme necessário
 int indentno = 0;  // Iniciar a indentação
@@ -11,6 +12,8 @@ FILE * listing;
 FILE * codeinter;
 FILE * acode;
 FILE * bcode;
+FILE * teste;
+FILE * assembly;
 
 /* allocate and set tracing flags */
 int EchoSource = FALSE;
@@ -50,4 +53,18 @@ int main()
 
     printIntermediateCode();
 
+    const char* output_filename = "output.txt";
+    FILE *output_file = fopen(output_filename, "w");
+
+    // --- THIS IS THE CRUCIAL CHECK ---
+    if (output_file == NULL) {
+        // If the file couldn't be opened, print an error and exit.
+        perror("Error opening output file"); // perror prints a system error message
+        return EXIT_FAILURE; // or exit(1);
+    }
+    printf("Sexo\n");
+
+
+    generate_assembly(codecodecode, output_filename);
+    
 }
