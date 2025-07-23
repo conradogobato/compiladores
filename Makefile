@@ -7,13 +7,14 @@ BISON = bison
 # Nome do executável final
 EXEC = compilador
 
-# Arquivos fontes
+# --- DEFINIÇÕES DOS ARQUIVOS FONTES ---
+# Adicionadas as definições que estavam faltando
 LEX_SRC = cminus.l
 YACC_SRC = cminus.y
-C_SRC = globals.c main.c symtab.c analyze.c cgen.c assembler.c
+C_SRC = globals.c main.c symtab.c analyze.c cgen.c assembler.c binary.c
 
 # Arquivos de objetos
-OBJ = globals.o main.o symtab.o analyze.o cgen.o assembler.o cminus.tab.o lex.yy.o
+OBJ = globals.o main.o symtab.o analyze.o cgen.o assembler.o binary.o cminus.tab.o lex.yy.o
 
 # Regras padrão
 all: $(EXEC)
@@ -34,7 +35,8 @@ cminus.tab.c cminus.tab.h: $(YACC_SRC)
 globals.o: globals.c cminus.tab.h globals.h
 	$(CC) $(CFLAGS) -c globals.c
 
-main.o: main.c globals.h analyze.h symtab.h cgen.h
+# Adicionada dependência de binary.h
+main.o: main.c globals.h analyze.h symtab.h cgen.h assembler.h binary.h
 	$(CC) $(CFLAGS) -c main.c
 
 symtab.o: symtab.c symtab.h globals.h
@@ -49,6 +51,10 @@ cgen.o: cgen.c cgen.h globals.h
 assembler.o: assembler.c assembler.h globals.h
 	$(CC) $(CFLAGS) -c assembler.c
 
+# Nova regra de compilação para binary.o
+binary.o: binary.c binary.h
+	$(CC) $(CFLAGS) -c binary.c
+
 cminus.tab.o: cminus.tab.c cminus.tab.h
 	$(CC) $(CFLAGS) -c cminus.tab.c
 
@@ -60,5 +66,6 @@ clean:
 	rm -f $(OBJ) $(EXEC) lex.yy.c cminus.tab.c cminus.tab.h
 
 # Para rodar o compilador com o arquivo de entrada
+# O comando 'make run' irá primeiro construir o executável (se necessário) e depois rodá-lo
 run: $(EXEC)
-	./$(EXEC) entrada.txt
+	./$(EXEC)

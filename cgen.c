@@ -159,6 +159,8 @@ void genExp(TreeNode *tree) {
             if(tree->child[0]->kind.exp == FunctionK){
                 fprintf(stderr,"typeK son FunctionK: %s\n",tree->child[0]->attr.name);
                 emit("FUNC",tree->child[0]->attr.name, "- ","-");
+                TreeNode *p1 = tree->child[0]->child[0];
+                fprintf(stderr,"pos p1\n");
                 tree->check = 1;
                 cGen(tree->child[0]);
                 emit("END FUNCTION",tree->child[0]->attr.name, "- ","-");
@@ -229,7 +231,7 @@ void genStmt(TreeNode *tree) {
             cGen(p1);
             
             char *label1 = newLabel(); 
-            emit("JUMP_FALSE", get_reg(cont_reg), "_", label1);
+            emit("JUMP_FALSE", get_reg(cont_reg++), "_", label1);
 
             cGen(p2);
             
@@ -257,7 +259,7 @@ void genStmt(TreeNode *tree) {
 
             cGen(p1);
             
-            emit("JUMP_FALSE", get_reg(cont_reg), "- ", label2);
+            emit("JUMP_FALSE", get_reg(cont_reg++), "- ", label2);
 
             cGen(p2);
             
@@ -274,7 +276,8 @@ void genStmt(TreeNode *tree) {
             fprintf(stderr,"ReturnK:\n");
             tree->check = 1;
             if(tree->child[0]->kind.exp == CALLfunctionK) cGen(tree->child[0]);
-            emit("RETURN", "_", "_", tree->child[0]->attr.name);
+            if(tree->child[0]->kind.exp != CALLfunctionK) emit("LOAD", tree->child[0]->attr.name, "-", get_reg(++cont_reg));
+            emit("RETURN",tree->child[0]->attr.name, "_", get_reg(cont_reg++));
             return;
         }
 
